@@ -17,6 +17,10 @@ class VietanhsongnguSpider(DetailScraperSpider):
         {
             "url": "http://vietanhsongngu.com/hoc-tieng-anh-qua-truyen-song-ngu-c7.htm",
             "number_pages": 12
+        },
+        {
+            "url": "http://vietanhsongngu.com/van-hoa-du-lich-am-thuc-viet-c6.htm",
+            "number_pages": 12
         }
     ]
 
