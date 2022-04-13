@@ -36,29 +36,50 @@ class BaosongnguSpider(DetailScraperSpider):
     def parse_detail(self, response):
         ps = response.css('article').css('p').extract()
 
-        cnt = 0
-        lens = len(ps)
+        # special case when all paragraph write in one <p> tag
+        # process split with <br /> tag
+        soup = BeautifulSoup(ps[0])
+        if len(soup.find_all('span')) > 3: 
+            lst = ps[0].split('<br>') # list 
+            cnt = 0
+            lens = len(lst)
 
-        while cnt < lens - 1: 
-            pcheck = ps[cnt]
-            soup = BeautifulSoup(pcheck, 'lxml')
-            if soup.find('img') != None: 
+            while cnt < lens - 1: 
                 item = BilingualcrawlItem()
-                p1 = ps[cnt]
-                soup = BeautifulSoup(p1, 'lxml')
-
-                if soup.find('span') == None: # not english
+                msoup = BeautifulSoup(lst[cnt])
+                if msoup.find('span') != None: 
+                    item['english'] = msoup.text
+                    item['vietnamese'] = BeautifulSoup(lst[cnt+1]).text
+                    cnt += 2
+                    yield item
+                else: 
                     cnt += 1
-                    continue
+        else: # normal case, split with <p> tag
+            cnt = 0
+            lens = len(ps)
 
-                item['english'] = soup.text
-                p2 = ps[cnt + 1]
-                soup = BeautifulSoup(p2, 'lxml')
-                item['vietnamese'] = soup.text
+            while cnt < lens - 1: 
+                pcheck = ps[cnt]
+                soup = BeautifulSoup(pcheck, 'lxml')
+                if soup.find('img') != None: 
+                    item = BilingualcrawlItem()
+                    p1 = ps[cnt]
+                    soup = BeautifulSoup(p1, 'lxml')
 
-                cnt += 2
-                yield item
-            else: # contain image tag
-                cnt += 1
+                    if soup.find('span') == None: # not english
+                        cnt += 1
+                        continue
+
+                    item['english'] = soup.span.text
+                    p2 = ps[cnt + 1]
+                    soup = BeautifulSoup(p2, 'lxml')
+                    item['vietnamese'] = soup.text
+                    if soup.find('span') != None: 
+                        item['vietnamese'] = item['vietnamese'].replace(soup.span.text, "")
+
+                    cnt += 2
+                    yield item
+                else: # contain image tag
+                    cnt += 1
     
     
